@@ -1,0 +1,16 @@
+# Deployed by the platform into a namespace named after the repo, with size, ceiling and tier components appended from
+# the environment. Promoting a release means bumping the tag here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+components:
+  - ../../app
+images:
+  - name: ghcr.io/my-org/my-app
+    newTag: 0.1.0
+patches:
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: golden
