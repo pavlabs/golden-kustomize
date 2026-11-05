@@ -49,10 +49,10 @@ Every size keeps `minReplicas <= 3 < maxReplicas`, so any size, ceiling and tier
 
 `template/` is a starting point for an app repo: a `deploy/` folder and a `Tiltfile`.
 
-1. Ask the platform admin to add the repo to the platform's GitHub App installation. The platform then deploys any repo of a configured org that has `deploy/overlays/<environment>`, into a namespace named after the repo.
-2. Copy `template/deploy` and `template/Tiltfile` into the repo and replace `my-app`, `my-org` and the hosts. `name` in `deploy/app/golden.yaml` names the resources; the namespace is always the repo name.
-3. List extra components in `deploy/app/kustomization.yaml` (`externalsecret`, `migration-job`, the monitors), but not `size`, `ceiling` or `tier`: the platform appends those to each overlay, so keep `deploy/app` a Component and the golden delete patch last in every overlay. Keep the `base` tag in step with the platform's golden version, since the appended components come from that version.
+1. Ask the platform admin to add the repo to the platform's GitHub App installation. The platform then deploys any repo of a configured org that has `deploy/overlays/<stage>` (`dev` on the local cluster) into the namespace `<org alias>-<repo>-<stage>`.
+2. Copy `template/deploy` and `template/Tiltfile` into the repo and replace `my-app`, `my-org` and the hosts. `name` in `deploy/app/golden.yaml` names the resources. A platform-deployed app may only use hosts on the platform's app domains (`*.dev.struggleto.build` locally); a Tilt namespace uses the platform domain (`*.local.struggleto.build`).
+3. List extra components in `deploy/app/kustomization.yaml` (`externalsecret`, `migration-job`, the monitors), but not `size`, `ceiling` or `tier`: the platform appends those to each overlay, so keep `deploy/app` a Component and the golden delete patch last in every overlay. Keep the `base` tag in step with the platform's golden version, since the appended components come from that version. An app with several workloads sizes each one itself instead and adds an empty `deploy/overlays/<stage>/.self-sized` file, so the platform appends nothing.
 4. Make the image fit the base: serve on port 8080, run as a non-root user (UID 10001 by default), and write only to `/tmp`.
-5. Merge to the default branch. The app appears at `https://<host>` from `deploy/app/golden.yaml`, and releases move by bumping the tag in `deploy/overlays/<environment>`.
+5. Merge to the default branch. The app appears at `https://<host>` from `deploy/app/golden.yaml`, and releases move by bumping the tag in `deploy/overlays/<stage>`.
 
-For the edit loop, run `tilt up`. Tilt builds the image, pushes it to the local cluster's registry and applies `deploy/overlays/dev` into `<app>-dev`, at the dev host. Add a `live_update` to `docker_build` to sync code into the running container without rebuilding.
+For the edit loop, run `tilt up`. Tilt builds the image, pushes it to the local cluster's registry and applies `deploy/overlays/local` into `<org alias>-<repo>-local`, at the local host. Add a `live_update` to `docker_build` to sync code into the running container without rebuilding.

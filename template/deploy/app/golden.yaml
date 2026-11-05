@@ -6,4 +6,4 @@ metadata:
     config.kubernetes.io/local-config: "true"
 data:
   name: my-app
-  host: my-app.local.struggleto.build
+  host: my-app.dev.struggleto.build

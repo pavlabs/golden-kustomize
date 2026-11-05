@@ -1,13 +1,18 @@
-# Deployed by the platform into a namespace named after the repo, with size, ceiling and tier components appended from
-# the environment. Promoting a release means bumping the tag here.
+# Applied by Tilt (see Tiltfile) into its own namespace, which the platform never touches.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: my-org-my-app-local
+resources:
+  - namespace.yaml
 components:
   - ../../app
-images:
-  - name: ghcr.io/my-org/my-app
-    newTag: 0.1.0
 patches:
+  - target:
+      kind: HTTPRoute
+    patch: |-
+      - op: replace
+        path: /spec/hostnames/0
+        value: my-app.local.struggleto.build
   - patch: |-
       $patch: delete
       apiVersion: v1

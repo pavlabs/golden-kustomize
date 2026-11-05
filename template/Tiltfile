@@ -1,7 +1,7 @@
-# Inner loop on the local kind cluster: builds the image, pushes it to the cluster's registry and applies the dev overlay.
-# The platform deploys deploy/overlays/local into the my-app namespace; Tilt owns my-app-dev, so the two never fight.
+# Inner loop on the local kind cluster: builds the image, pushes it to the cluster's registry and applies the local
+# overlay. The platform deploys deploy/overlays/dev into my-org-my-app-dev; Tilt owns my-org-my-app-local.
 allow_k8s_contexts('kind-local')
 
 docker_build('ghcr.io/my-org/my-app', '.')
-k8s_yaml(kustomize('deploy/overlays/dev'))
-k8s_resource('my-app', links=[link('https://my-app-dev.local.struggleto.build', 'my-app (dev)')])
+k8s_yaml(kustomize('deploy/overlays/local'))
+k8s_resource('my-app', links=[link('https://my-app.local.struggleto.build', 'my-app (local)')])
