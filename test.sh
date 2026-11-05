@@ -25,9 +25,18 @@ pods_of() {
     "spec": .spec.template.spec}] | .[] | split_doc'
 }
 
+# Kustomize refuses absolute component paths, so the template copy and the combinations are built inside the repo.
+template=$root/.template
+app=$root/.combination
+trap 'rm -rf "$work" "$app" "$template"' EXIT
+
+# The template's platform-deployed overlay is what onboarded apps start from, so it is checked like the test apps,
+# against this checkout's components rather than the published tag it names.
+rm -rf "$template" && cp -R "$root/template" "$template"
+sed -i.bak 's|https://github.com/pavlabs/golden-kustomize//\([^?]*\)?ref=[^ ]*|../../../\1|' "$template/deploy/app/kustomization.yaml"
+
 : >"$work/pods.yaml"
-# The template's local overlay is what onboarded apps start from, so it is checked like the test apps.
-for test in "$root"/tests/*/ "$root/template/deploy/overlays/local/"; do
+for test in "$root"/tests/*/ "$template/deploy/overlays/dev/"; do
   rendered=$(kubectl kustomize "$test")
   if grep -qw golden <<<"$rendered"; then
     fail "placeholder left in output: test=$(basename "$test")"
@@ -35,10 +44,6 @@ for test in "$root"/tests/*/ "$root/template/deploy/overlays/local/"; do
   pods_of <<<"$rendered" >>"$work/pods.yaml"
   echo '---' >>"$work/pods.yaml"
 done
-
-# Kustomize refuses absolute component paths, so combinations are built beside the components.
-app=$root/.combination
-trap 'rm -rf "$work" "$app"' EXIT
 combinations=0
 for size in "$components"/size/[0-9]*; do
   for ceiling in "" "$components"/ceiling/*; do
