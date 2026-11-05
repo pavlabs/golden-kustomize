@@ -1,7 +1,7 @@
 # Applied by Tilt (see Tiltfile) into its own namespace, which the platform never touches.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: my-app-dev
+namespace: my-org-my-app-local
 resources:
   - namespace.yaml
 components:
@@ -12,7 +12,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/hostnames/0
-        value: my-app-dev.local.struggleto.build
+        value: my-app.local.struggleto.build
   - patch: |-
       $patch: delete
       apiVersion: v1

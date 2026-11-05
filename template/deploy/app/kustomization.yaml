@@ -5,7 +5,7 @@ kind: Component
 resources:
   - golden.yaml
 components:
-  - https://github.com/pavlabs/golden-kustomize//base?ref=v0.1.0
+  - https://github.com/pavlabs/golden-kustomize//base?ref=v0.2.0
 images:
   - name: app
     newName: ghcr.io/my-org/my-app
