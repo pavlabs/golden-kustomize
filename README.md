@@ -37,7 +37,7 @@ patches:
 | `workload` | Deployment and ServiceAccount: non-root, read-only root filesystem with a writable `/tmp`, no service-account token, surge-only rollouts, container port `http` 8080. Used alone (first) by workers without a route |
 | `service`, `httproute` | Service on port 80, and a route on the platform Gateway's HTTPS listener for the config's `host` |
 | `externalsecret` | An ExternalSecret from the `secrets` store, loaded whole into the container's environment; the app patches `spec.data` |
-| `migration-job` | A PreSync Job on the workload's image for schema migrations, run before every sync, so the migration must be idempotent; the app patches its command |
+| `migration-job` | A Job on the workload's image for schema migrations, run on every sync after the app's Secret exists and before the workload rolls, so the migration must be idempotent; the app patches its command |
 | `servicemonitor`, `podmonitor` | Prometheus scraping of `/metrics` on `http` (needs the observability stack) |
 | `size/<mru>` | Requests, memory limit and an HPA floor for 100, 1000, 10000 or 100000 monthly recurring users |
 | `ceiling/<peakUsers>` | How far the HPA may scale, for 1000 to 1000000 expected peak users (needs a size) |
@@ -45,3 +45,14 @@ patches:
 
 Every size keeps `minReplicas <= 3 < maxReplicas`, so any size, ceiling and tier combine into an HPA that can still scale. The platform's Kyverno policies check what the base guarantees in namespaces labeled `pavlabs.dev/workloads: apps`. `test.sh` renders the apps in `tests/` and fails on any leftover placeholder or on a size, ceiling and tier combination that cannot scale. Given `POLICIES=<file of Kyverno policies>` (and optionally `NAMESPACE_LABELS=key=value,...`), it also checks the rendered pods against those policies; run it that way after changing the base or the policies. After merging a change, tag the commit `vX.Y.Z` so apps can move to it deliberately.
 
+## Onboarding an app
+
+`template/` is a starting point for an app repo: a `deploy/` folder and a `Tiltfile`.
+
+1. Ask the platform admin to add the repo to the platform's GitHub App installation. The platform then deploys any repo of a configured org that has `deploy/overlays/<environment>`, into a namespace named after the repo.
+2. Copy `template/deploy` and `template/Tiltfile` into the repo and replace `my-app`, `my-org` and the hosts. `name` in `deploy/app/golden.yaml` names the resources; the namespace is always the repo name.
+3. List extra components in `deploy/app/kustomization.yaml` (`externalsecret`, `migration-job`, the monitors), but not `size`, `ceiling` or `tier`: the platform appends those to each overlay, so keep `deploy/app` a Component and the golden delete patch last in every overlay. Keep the `base` tag in step with the platform's golden version, since the appended components come from that version.
+4. Make the image fit the base: serve on port 8080, run as a non-root user (UID 10001 by default), and write only to `/tmp`.
+5. Merge to the default branch. The app appears at `https://<host>` from `deploy/app/golden.yaml`, and releases move by bumping the tag in `deploy/overlays/<environment>`.
+
+For the edit loop, run `tilt up`. Tilt builds the image, pushes it to the local cluster's registry and applies `deploy/overlays/dev` into `<app>-dev`, at the dev host. Add a `live_update` to `docker_build` to sync code into the running container without rebuilding.
