@@ -1,0 +1,5 @@
+# Unlabeled on purpose: Tilt's build tags aren't release versions, so the golden image policy leaves this namespace alone.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-app-dev

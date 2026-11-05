@@ -1,0 +1,15 @@
+# Everything about the app that is the same in every environment. It is a Component so the components the platform
+# appends to each overlay (size, ceiling, tier) still see the golden config.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - golden.yaml
+components:
+  - https://github.com/pavlabs/golden-kustomize//base?ref=v0.1.0
+images:
+  - name: app
+    newName: ghcr.io/my-org/my-app
+labels:
+  - includeTemplates: true
+    pairs:
+      app.kubernetes.io/part-of: my-app

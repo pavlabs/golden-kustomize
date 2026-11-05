@@ -26,7 +26,8 @@ pods_of() {
 }
 
 : >"$work/pods.yaml"
-for test in "$root"/tests/*/; do
+# The template's local overlay is what onboarded apps start from, so it is checked like the test apps.
+for test in "$root"/tests/*/ "$root/template/deploy/overlays/local/"; do
   rendered=$(kubectl kustomize "$test")
   if grep -qw golden <<<"$rendered"; then
     fail "placeholder left in output: test=$(basename "$test")"

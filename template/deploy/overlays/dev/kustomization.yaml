@@ -1,0 +1,21 @@
+# Applied by Tilt (see Tiltfile) into its own namespace, which the platform never touches.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: my-app-dev
+resources:
+  - namespace.yaml
+components:
+  - ../../app
+patches:
+  - target:
+      kind: HTTPRoute
+    patch: |-
+      - op: replace
+        path: /spec/hostnames/0
+        value: my-app-dev.local.struggleto.build
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: golden
