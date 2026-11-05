@@ -1,0 +1,31 @@
+# The app patches `spec.data` with its own entries; each `secretKey` becomes an environment variable, because the
+# workload takes the whole Secret through envFrom (the migration Job reads it too, when present).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - externalsecret.yaml
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom
+        value:
+          - secretRef:
+              name: golden
+replacements:
+  - source:
+      kind: ConfigMap
+      name: golden
+      fieldPath: data.name
+    targets:
+      - select:
+          kind: ExternalSecret
+          name: golden
+        fieldPaths:
+          - metadata.name
+          - spec.target.name
+      - select:
+          kind: Deployment
+        fieldPaths:
+          - spec.template.spec.containers.0.envFrom.0.secretRef.name

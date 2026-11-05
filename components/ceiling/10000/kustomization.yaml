@@ -1,0 +1,10 @@
+# HPA maximum for about 10000 peak users. Needs a size component.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+patches:
+  - target:
+      kind: HorizontalPodAutoscaler
+    patch: |-
+      - op: replace
+        path: /spec/maxReplicas
+        value: 6

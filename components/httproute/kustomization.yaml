@@ -1,0 +1,26 @@
+# Needs the service component. The host comes from the app's `golden` config.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - httproute.yaml
+replacements:
+  - source:
+      kind: ConfigMap
+      name: golden
+      fieldPath: data.name
+    targets:
+      - select:
+          kind: HTTPRoute
+          name: golden
+        fieldPaths:
+          - metadata.name
+          - spec.rules.0.backendRefs.0.name
+  - source:
+      kind: ConfigMap
+      name: golden
+      fieldPath: data.host
+    targets:
+      - select:
+          kind: HTTPRoute
+        fieldPaths:
+          - spec.hostnames.0

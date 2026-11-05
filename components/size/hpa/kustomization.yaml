@@ -1,0 +1,17 @@
+# The HPA every size shares; the size components set its bounds.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - hpa.yaml
+replacements:
+  - source:
+      kind: ConfigMap
+      name: golden
+      fieldPath: data.name
+    targets:
+      - select:
+          kind: HorizontalPodAutoscaler
+          name: golden
+        fieldPaths:
+          - metadata.name
+          - spec.scaleTargetRef.name

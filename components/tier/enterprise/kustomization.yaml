@@ -1,0 +1,52 @@
+# At least 3 pods spread across zones, with at most one down at a time. Needs a size component, and nodes
+# labeled with topology.kubernetes.io/zone (regional GKE), because pods refuse to pile into one zone.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - pdb.yaml
+patches:
+  - target:
+      kind: HorizontalPodAutoscaler
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 3
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/topologySpreadConstraints
+        value:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/instance: golden
+            matchLabelKeys:
+              - pod-template-hash
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: ScheduleAnyway
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/instance: golden
+            matchLabelKeys:
+              - pod-template-hash
+replacements:
+  - source:
+      kind: ConfigMap
+      name: golden
+      fieldPath: data.name
+    targets:
+      - select:
+          kind: PodDisruptionBudget
+          name: golden
+        fieldPaths:
+          - metadata.name
+          - spec.selector.matchLabels.[app.kubernetes.io/instance]
+      - select:
+          kind: Deployment
+        fieldPaths:
+          - spec.template.spec.topologySpreadConstraints.0.labelSelector.matchLabels.[app.kubernetes.io/instance]
+          - spec.template.spec.topologySpreadConstraints.1.labelSelector.matchLabels.[app.kubernetes.io/instance]

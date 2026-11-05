@@ -1,0 +1,9 @@
+# The default set: one pod serving HTTP behind the platform Gateway (needs `name` and `host` in the app's golden
+# config). Add components for secrets, migrations, monitoring and sizing; a size turns the single pod into an HPA.
+# Sizing stays out of the base because Kustomize refuses a component included twice.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+components:
+  - ../components/workload
+  - ../components/service
+  - ../components/httproute

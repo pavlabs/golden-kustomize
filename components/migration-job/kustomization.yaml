@@ -1,0 +1,26 @@
+# A Job that runs to completion on every sync before the workload rolls, for schema migrations, so the migration
+# must be idempotent.
+# It shares the workload's image (set by `images:`); the app patches its command.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - job.yaml
+replacements:
+  - source:
+      kind: ConfigMap
+      name: golden
+      fieldPath: data.name
+    targets:
+      - select:
+          kind: Job
+          name: golden-migrate
+        fieldPaths:
+          - metadata.name
+        options:
+          delimiter: "-"
+          index: 0
+      - select:
+          kind: Job
+        fieldPaths:
+          - spec.template.metadata.labels.[app.kubernetes.io/instance]
+          - spec.template.spec.containers.0.envFrom.0.secretRef.name
