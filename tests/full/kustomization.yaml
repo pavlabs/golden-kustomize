@@ -8,6 +8,8 @@ components:
   - ../../components/externalsecret
   - ../../components/migration-job
   - ../../components/servicemonitor
+  - ../../components/same-namespace
+  - ../../components/kube-api
   - ../../components/size/10000
   - ../../components/ceiling/100000
   - ../../components/tier/enterprise

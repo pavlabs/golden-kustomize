@@ -1,0 +1,34 @@
+# For a workload that calls the Kubernetes API (kubectl in a Job, leader election, a controller): opens egress to the API
+# server, which the platform's default deny blocks, and mounts the service account token the base leaves out. Grant
+# what it may do there with a Role of its own.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - ciliumnetworkpolicy.yaml
+patches:
+  - target:
+      kind: ServiceAccount
+    patch: |-
+      - op: replace
+        path: /automountServiceAccountToken
+        value: true
+replacements:
+  - source:
+      kind: ConfigMap
+      name: golden
+      fieldPath: data.name
+    # The selector first: renaming the policy before it would leave this target unmatched.
+    targets:
+      - select:
+          kind: CiliumNetworkPolicy
+          name: golden-kube-api
+        fieldPaths:
+          - spec.endpointSelector.matchLabels.[app.kubernetes.io/instance]
+      - select:
+          kind: CiliumNetworkPolicy
+          name: golden-kube-api
+        fieldPaths:
+          - metadata.name
+        options:
+          delimiter: "-"
+          index: 0

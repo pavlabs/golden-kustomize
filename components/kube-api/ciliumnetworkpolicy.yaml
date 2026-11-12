@@ -1,0 +1,11 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: golden-kube-api
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: golden
+  egress:
+    - toEntities:
+        - kube-apiserver
