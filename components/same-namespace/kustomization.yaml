@@ -1,0 +1,6 @@
+# Lets the app's pods talk to each other and to the rest of its namespace (its Database, its cache), which the platform's
+# default deny for app namespaces blocks. Include it once per app, not per workload: it covers the whole namespace.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - ciliumnetworkpolicy.yaml

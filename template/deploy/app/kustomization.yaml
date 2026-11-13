@@ -5,7 +5,9 @@ kind: Component
 resources:
   - golden.yaml
 components:
-  - https://github.com/pavlabs/golden-kustomize//base?ref=v0.2.0
+  - https://github.com/pavlabs/golden-kustomize//base?ref=v0.3.0
+  # The platform denies traffic in app namespaces by default; this lets the app's own pods reach each other.
+  - https://github.com/pavlabs/golden-kustomize//components/same-namespace?ref=v0.3.0
 images:
   - name: app
     newName: ghcr.io/my-org/my-app
